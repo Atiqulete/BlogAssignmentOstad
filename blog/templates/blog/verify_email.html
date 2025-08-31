@@ -1,0 +1,32 @@
+{% extends 'blog/base.html' %}
+{% block title %}Email Verification{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow p-4">
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="bi bi-envelope-check display-1 text-success"></i>
+                    </div>
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}" role="alert">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            Verifying your email. Please wait...
+                        </div>
+                    {% endif %}
+                    <a href="{% url 'blog:login' %}" class="btn btn-primary mt-3">
+                        <i class="bi bi-box-arrow-in-right"></i> Go to Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

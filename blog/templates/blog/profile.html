@@ -1,0 +1,921 @@
+<!-- blog/profile.html -->
+{% extends 'blog/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}My Profile - BlogSite{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #1a237e;
+        --secondary-color: #3f51b5;
+        --accent-color: #ff9800;
+        --light-bg: #f0f2f5;
+        --card-bg: #ffffff;
+        --dark-text: #212121;
+        --light-text: #e8eaf6;
+        --muted-text: #6b7280;
+        --border-color: #e5e7eb;
+        --border-radius: 12px;
+        --box-shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.06);
+        --box-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
+        --transition: all 0.3s ease;
+        --like-color: #4caf50;
+        --dislike-color: #f44336;
+        --favorite-color: #e91e63;
+        --comment-color: #2196f3;
+    }
+    
+    .profile-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .profile-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        color: white;
+        text-align: center;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .profile-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+        opacity: 0.3;
+    }
+    
+    .profile-avatar {
+        position: relative;
+        margin: 0 auto 1.5rem;
+        width: 150px;
+        height: 150px;
+    }
+    
+    .avatar-image {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: var(--secondary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 3.5rem;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .avatar-upload {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        background: var(--accent-color);
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    
+    .avatar-upload:hover {
+        transform: scale(1.1);
+    }
+    
+    .profile-info {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .profile-name {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .profile-email {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 0.5rem;
+    }
+    
+    .profile-role {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.3rem 1rem;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+    
+    .profile-content {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 2rem;
+    }
+    
+    .profile-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .stats-card {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--box-shadow-sm);
+    }
+    
+    .stats-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 0.8rem;
+        border-radius: var(--border-radius);
+        background: var(--light-bg);
+        transition: var(--transition);
+    }
+    
+    .stat-item:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--box-shadow-sm);
+    }
+    
+    .stat-number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 0.3rem;
+    }
+    
+    .stat-likes .stat-number {
+        color: var(--like-color);
+    }
+    
+    .stat-dislikes .stat-number {
+        color: var(--dislike-color);
+    }
+    
+    .stat-favorites .stat-number {
+        color: var(--favorite-color);
+    }
+    
+    .stat-comments .stat-number {
+        color: var(--comment-color);
+    }
+    
+    .stat-label {
+        font-size: 0.85rem;
+        color: var(--muted-text);
+    }
+    
+    .quick-actions {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--box-shadow-sm);
+    }
+    
+    .action-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .action-item {
+        margin-bottom: 0.8rem;
+    }
+    
+    .action-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .action-link {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 0.8rem;
+        text-decoration: none;
+        color: var(--dark-text);
+        border-radius: var(--border-radius);
+        transition: var(--transition);
+    }
+    
+    .action-link:hover {
+        background: var(--light-bg);
+        color: var(--primary-color);
+    }
+    
+    .action-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--light-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-color);
+        font-size: 1.2rem;
+    }
+    
+    .profile-form-card {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        box-shadow: var(--box-shadow-sm);
+        margin-bottom: 2rem;
+    }
+    
+    .form-section {
+        margin-bottom: 2rem;
+    }
+    
+    .form-section:last-child {
+        margin-bottom: 0;
+    }
+    
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 1.2rem;
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--light-bg);
+    }
+    
+    .btn-update {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 0.8rem 2rem;
+        font-weight: 500;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-update:hover {
+        background: var(--secondary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(26, 35, 126, 0.2);
+    }
+    
+    .btn-change-password {
+        background: transparent;
+        border: 1px solid var(--primary-color);
+        color: var(--primary-color);
+        border-radius: 50px;
+        padding: 0.8rem 1.5rem;
+        font-weight: 500;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+    
+    .btn-change-password:hover {
+        background: var(--primary-color);
+        color: white;
+    }
+    
+    /* Post Management Section */
+    .post-management-card {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        box-shadow: var(--box-shadow-sm);
+        margin-top: 2rem;
+    }
+    
+    .post-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1.5rem;
+    }
+    
+    .post-table th,
+    .post-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .post-table th {
+        background-color: var(--light-bg);
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+    
+    .post-table tr:hover {
+        background-color: rgba(26, 35, 126, 0.03);
+    }
+    
+    .status-badge {
+        padding: 0.3rem 0.8rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .status-published {
+        background-color: #4caf50;
+        color: white;
+    }
+    
+    .status-draft {
+        background-color: #ff9800;
+        color: white;
+    }
+    
+    .btn-action {
+        padding: 0.4rem 0.8rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        transition: var(--transition);
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-publish {
+        background-color: #4caf50;
+        color: white;
+    }
+    
+    .btn-publish:hover {
+        background-color: #3d8b40;
+    }
+    
+    .btn-unpublish {
+        background-color: #f44336;
+        color: white;
+    }
+    
+    .btn-unpublish:hover {
+        background-color: #d32f2f;
+    }
+    
+    .btn-edit {
+        background-color: var(--primary-color);
+        color: white;
+    }
+    
+    .btn-edit:hover {
+        background-color: var(--secondary-color);
+    }
+    
+    .no-posts {
+        text-align: center;
+        padding: 2rem;
+        color: var(--muted-text);
+    }
+    
+    /* Custom form styling */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: var(--dark-text);
+    }
+    
+    .form-control {
+        border-radius: 8px;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-color);
+        transition: var(--transition);
+    }
+    
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.1);
+    }
+    
+    .custom-file-input {
+        position: relative;
+    }
+    
+    .custom-file-label {
+        display: block;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--light-bg);
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    
+    .custom-file-label:hover {
+        border-color: var(--primary-color);
+    }
+    
+    input[type="file"] {
+        position: absolute;
+        left: -9999px;
+    }
+    
+    /* Character count styling */
+    .character-count {
+        font-size: 0.8rem;
+        color: var(--muted-text);
+        text-align: right;
+        margin-top: 0.5rem;
+    }
+    
+    /* Engagement metrics */
+    .engagement-metrics {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .engagement-metric {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--muted-text);
+        font-size: 0.9rem;
+    }
+    
+    .engagement-metric i {
+        font-size: 1.1rem;
+    }
+    
+    .metric-likes i {
+        color: var(--like-color);
+    }
+    
+    .metric-dislikes i {
+        color: var(--dislike-color);
+    }
+    
+    .metric-favorites i {
+        color: var(--favorite-color);
+    }
+    
+    .metric-comments i {
+        color: var(--comment-color);
+    }
+    
+    /* Responsive design */
+    @media (max-width: 992px) {
+        .profile-content {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        .post-table {
+            display: block;
+            overflow-x: auto;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .profile-container {
+            padding: 0 0.5rem;
+        }
+        
+        .profile-header {
+            padding: 1.5rem;
+        }
+        
+        .profile-name {
+            font-size: 1.6rem;
+        }
+        
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+        }
+        
+        .avatar-placeholder {
+            font-size: 2.5rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .profile-form-card {
+            padding: 1.5rem;
+        }
+        
+        .post-table th,
+        .post-table td {
+            padding: 0.5rem;
+        }
+        
+        .engagement-metrics {
+            gap: 1rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .profile-header {
+            text-align: left;
+            padding: 1.5rem 1rem;
+        }
+        
+        .profile-avatar {
+            margin: 0 0 1rem 0;
+        }
+        
+        .profile-info {
+            text-align: center;
+        }
+        
+        .profile-name {
+            font-size: 1.4rem;
+        }
+        
+        .post-management-card {
+            padding: 1rem;
+        }
+        
+        .engagement-metrics {
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-avatar">
+            {% if user.profile.profile_picture %}
+            <img src="{{ user.profile.profile_picture.url }}" class="avatar-image" alt="{{ user.username }}">
+            {% else %}
+            <div class="avatar-placeholder">
+                <i class="bi bi-person"></i>
+            </div>
+            {% endif %}
+            <label for="id_profile_picture" class="avatar-upload" title="Change photo">
+                <i class="bi bi-camera"></i>
+            </label>
+        </div>
+        
+        <div class="profile-info">
+            <h1 class="profile-name">
+                {% if user.get_full_name %}
+                    {{ user.get_full_name }}
+                {% else %}
+                    {{ user.username }}
+                {% endif %}
+            </h1>
+            <p class="profile-email">{{ user.email }}</p>
+            <span class="profile-role">{{ user.profile.user_type|title }}</span>
+            
+            <!-- Engagement Metrics -->
+            <div class="engagement-metrics">
+                <div class="engagement-metric metric-likes">
+                    <i class="bi bi-hand-thumbs-up-fill"></i>
+                    <span>{{ total_likes }} Likes Received</span>
+                </div>
+                <div class="engagement-metric metric-dislikes">
+                    <i class="bi bi-hand-thumbs-down-fill"></i>
+                    <span>{{ total_dislikes }} Dislikes Received</span>
+                </div>
+                <div class="engagement-metric metric-favorites">
+                    <i class="bi bi-heart-fill"></i>
+                    <span>{{ total_favorites }} Favorites</span>
+                </div>
+                <div class="engagement-metric metric-comments">
+                    <i class="bi bi-chat-fill"></i>
+                    <span>{{ total_comments }} Comments</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="profile-content">
+        <!-- Sidebar with stats and quick actions -->
+        <div class="profile-sidebar">
+            <div class="stats-card">
+                <h3 class="stats-title">
+                    <i class="bi bi-bar-chart"></i> Your Stats
+                </h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number">{{ user.blog_posts.count }}</div>
+                        <div class="stat-label">Posts</div>
+                    </div>
+                    <div class="stat-item stat-likes">
+                        <div class="stat-number">{{ total_likes }}</div>
+                        <div class="stat-label">Likes Received</div>
+                    </div>
+                    <div class="stat-item stat-dislikes">
+                        <div class="stat-number">{{ total_dislikes }}</div>
+                        <div class="stat-label">Dislikes Received</div>
+                    </div>
+                    <div class="stat-item stat-favorites">
+                        <div class="stat-number">{{ total_favorites }}</div>
+                        <div class="stat-label">Favorites</div>
+                    </div>
+                    <div class="stat-item stat-comments">
+                        <div class="stat-number">{{ total_comments }}</div>
+                        <div class="stat-label">Comments</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">
+                            {% if user.blog_posts.count > 0 %}
+                                {% with avg_rating=user.blog_posts.all|dictsortreversed:"average_rating"|first %}
+                                    {{ avg_rating.average_rating|floatformat:1|default:"0.0" }}
+                                {% endwith %}
+                            {% else %}
+                                0.0
+                            {% endif %}
+                        </div>
+                        <div class="stat-label">Avg Rating</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="quick-actions">
+                <h3 class="stats-title">
+                    <i class="bi bi-lightning"></i> Quick Actions
+                </h3>
+                <ul class="action-list">
+                    <li class="action-item">
+                        <a href="{% url 'blog:blog_create' %}" class="action-link">
+                            <span class="action-icon">
+                                <i class="bi bi-pencil"></i>
+                            </span>
+                            <span>Write New Post</span>
+                        </a>
+                    </li>
+                    <li class="action-item">
+                        <a href="{% url 'blog:favorite_list' %}" class="action-link">
+                            <span class="action-icon">
+                                <i class="bi bi-heart"></i>
+                            </span>
+                            <span>Your Favorites</span>
+                        </a>
+                    </li>
+                    <li class="action-item">
+                        <a href="{% url 'blog:blog_list' %}?author={{ user.username }}" class="action-link">
+                            <span class="action-icon">
+                                <i class="bi bi-journal-text"></i>
+                            </span>
+                            <span>Your Posts</span>
+                        </a>
+                    </li>
+                    <li class="action-item">
+                        <a href="{% url 'blog:password_change' %}" class="action-link">
+                            <span class="action-icon">
+                                <i class="bi bi-shield-lock"></i>
+                            </span>
+                            <span>Change Password</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Main form content -->
+        <div class="profile-form-card">
+            <form method="POST" enctype="multipart/form-data" id="profileForm">
+                {% csrf_token %}
+                
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="bi bi-person"></i> Basic Information
+                    </h3>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ u_form.username|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ u_form.email|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ u_form.first_name|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ u_form.last_name|as_crispy_field }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="bi bi-gear"></i> Profile Details
+                    </h3>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ p_form.user_type|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ p_form.profile_picture.id_for_label }}">Profile Picture</label>
+                                <div class="custom-file-input">
+                                    <label for="id_profile_picture" class="custom-file-label">
+                                        {% if user.profile.profile_picture %}
+                                        Change current picture
+                                        {% else %}
+                                        Upload profile picture
+                                        {% endif %}
+                                    </label>
+                                    {{ p_form.profile_picture }}
+                                </div>
+                                <small class="form-text text-muted">Recommended: Square image, at least 200x200 pixels</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {{ p_form.bio|as_crispy_field }}
+                    {{ p_form.social_media|as_crispy_field }}
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <button class="btn-update" type="submit">
+                        <i class="bi bi-check-circle"></i> Update Profile
+                    </button>
+                    <a href="{% url 'blog:password_change' %}" class="btn-change-password">
+                        <i class="bi bi-shield-lock"></i> Change Password
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Post Management Section for Authors and Admins -->
+    {% if user.profile.user_type == 'author' or user.is_staff %}
+    <div class="post-management-card">
+        <h3 class="section-title">
+            <i class="bi bi-journal-text"></i> Post Management
+        </h3>
+        
+        {% if user_posts %}
+        <table class="post-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Engagement</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for post in user_posts %}
+                <tr>
+                    <td>
+                        <a href="{% url 'blog:blog_detail' post.pk %}" class="text-decoration-none">
+                            {{ post.title|truncatewords:5 }}
+                        </a>
+                    </td>
+                    <td>
+                        <span class="status-badge {% if post.published %}status-published{% else %}status-draft{% endif %}">
+                            {% if post.published %}Published{% else %}Draft{% endif %}
+                        </span>
+                    </td>
+                    <td>{{ post.created_at|date:"M d, Y" }}</td>
+                    <td>
+                        <div class="d-flex gap-3">
+                            <small class="text-muted">
+                                <i class="bi bi-hand-thumbs-up" style="color: var(--like-color);"></i> {{ post.like_set.count }}
+                            </small>
+                            <small class="text-muted">
+                                <i class="bi bi-hand-thumbs-down" style="color: var(--dislike-color);"></i> {{ post.dislike_set.count }}
+                            </small>
+                            <small class="text-muted">
+                                <i class="bi bi-heart" style="color: var(--favorite-color);"></i> {{ post.favorited_by.count }}
+                            </small>
+                            <small class="text-muted">
+                                <i class="bi bi-chat" style="color: var(--comment-color);"></i> {{ post.comment_set.count }}
+                            </small>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <a href="{% url 'blog:blog_update' post.pk %}" class="btn-action btn-edit">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a>
+                            {% if post.published %}
+                            <form action="{% url 'blog:unpublish_post' post.pk %}" method="POST" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-action btn-unpublish">
+                                    <i class="bi bi-x-circle"></i> Unpublish
+                                </button>
+                            </form>
+                            {% else %}
+                            <form action="{% url 'blog:publish_post' post.pk %}" method="POST" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-action btn-publish">
+                                    <i class="bi bi-check-circle"></i> Publish
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="no-posts">
+            <i class="bi bi-journal-x" style="font-size: 2rem;"></i>
+            <p>You haven't created any blog posts yet.</p>
+            <a href="{% url 'blog:blog_create' %}" class="btn-update">
+                <i class="bi bi-pencil"></i> Create Your First Post
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // Update file input label with selected file name
+    document.getElementById('id_profile_picture').addEventListener('change', function(e) {
+        const fileName = e.target.files[0]?.name || 'Choose file';
+        document.querySelector('.custom-file-label').textContent = fileName;
+    });
+    
+    // Add character counter for bio field
+    document.addEventListener('DOMContentLoaded', function() {
+        const bioTextarea = document.getElementById('id_bio');
+        const bioCounter = document.createElement('div');
+        bioCounter.className = 'character-count';
+        bioCounter.innerHTML = '<span id="bio-current">0</span>/<span id="bio-max">500</span> characters';
+        
+        if (bioTextarea) {
+            bioTextarea.parentNode.appendChild(bioCounter);
+            
+            const bioCurrent = document.getElementById('bio-current');
+            const bioMax = document.getElementById('bio-max');
+            
+            // Set initial value
+            bioCurrent.textContent = bioTextarea.value.length;
+            
+            // Update on input
+            bioTextarea.addEventListener('input', function() {
+                bioCurrent.textContent = this.value.length;
+                
+                // Add warning if approaching limit
+                if (this.value.length > 450) {
+                    bioCurrent.style.color = '#e53e3e';
+                } else {
+                    bioCurrent.style.color = '';
+                }
+            });
+        }
+    });
+</script>
+{% endblock content %}

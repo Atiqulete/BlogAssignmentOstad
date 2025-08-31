@@ -1,0 +1,1132 @@
+{% extends 'blog/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}{{ blog.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #1a237e;
+        --secondary-color: #3f51b5;
+        --accent-color: #ff9800;
+        --light-bg: #f0f2f5;
+        --card-bg: #ffffff;
+        --dark-text: #212121;
+        --light-text: #e8eaf6;
+        --muted-text: #6b7280;
+        --border-color: #e5e7eb;
+        --border-radius: 12px;
+        --box-shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.06);
+        --box-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
+        --transition: all 0.3s ease;
+        --like-color: #4caf50;
+        --dislike-color: #f44336;
+    }
+    
+    .blog-detail-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    
+    .blog-hero {
+        position: relative;
+        margin-bottom: 2rem;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--box-shadow-sm);
+    }
+    
+    .blog-hero-img {
+        width: 100%;
+        height: 400px;
+        object-fit: cover;
+    }
+    
+    .blog-hero-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+        padding: 2rem;
+        color: white;
+    }
+    
+    .blog-title {
+        font-size: 2.8rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: white;
+        line-height: 1.2;
+    }
+    
+    .blog-meta {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        margin-bottom: 1rem;
+        color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .blog-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .blog-content {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        padding: 2.5rem;
+        box-shadow: var(--box-shadow-sm);
+        margin-bottom: 2rem;
+        line-height: 1.8;
+        font-size: 1.1rem;
+    }
+    
+    .blog-content p {
+        margin-bottom: 1.5rem;
+    }
+    
+    .blog-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: var(--border-radius);
+        margin: 1.5rem 0;
+    }
+    
+    .category-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 2rem;
+    }
+    
+    .category-badge {
+        background: var(--primary-color);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .btn-edit {
+        background: var(--secondary-color);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 0.6rem 1.5rem;
+        font-weight: 500;
+        transition: var(--transition);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-edit:hover {
+        background: #303f9f;
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .btn-delete {
+        background: #f44336;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 0.6rem 1.5rem;
+        font-weight: 500;
+        transition: var(--transition);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-delete:hover {
+        background: #d32f2f;
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    /* Like/Dislike Section */
+    .like-dislike-section {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--box-shadow-sm);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .like-dislike-header {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: var(--dark-text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    
+    .reaction-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+    }
+    
+    .btn-reaction {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: transparent;
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius);
+        padding: 1rem 1.5rem;
+        transition: var(--transition);
+        cursor: pointer;
+        min-width: 100px;
+    }
+    
+    .btn-reaction:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--box-shadow-sm);
+    }
+    
+    .btn-like:hover {
+        border-color: var(--like-color);
+    }
+    
+    .btn-dislike:hover {
+        border-color: var(--dislike-color);
+    }
+    
+    .btn-reaction.active {
+        transform: translateY(-3px);
+        box-shadow: var(--box-shadow-sm);
+    }
+    
+    .btn-like.active {
+        border-color: var(--like-color);
+        background-color: rgba(76, 175, 80, 0.1);
+    }
+    
+    .btn-dislike.active {
+        border-color: var(--dislike-color);
+        background-color: rgba(244, 67, 54, 0.1);
+    }
+    
+    .reaction-icon {
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .like-icon {
+        color: var(--muted-text);
+    }
+    
+    .dislike-icon {
+        color: var(--muted-text);
+    }
+    
+    .btn-like.active .like-icon {
+        color: var(--like-color);
+    }
+    
+    .btn-dislike.active .dislike-icon {
+        color: var(--dislike-color);
+    }
+    
+    .reaction-count {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--dark-text);
+    }
+    
+    .reaction-text {
+        font-size: 0.9rem;
+        color: var(--muted-text);
+        margin-top: 0.3rem;
+    }
+    
+    .rating-section {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--box-shadow-sm);
+        margin-bottom: 2rem;
+    }
+    
+    .rating-header {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--dark-text);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .favorite-section {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--box-shadow-sm);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .btn-favorite {
+        background: transparent;
+        border: 2px solid #f44336;
+        color: #f44336;
+        border-radius: 50px;
+        padding: 0.7rem 2rem;
+        font-weight: 500;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .btn-favorite:hover {
+        background: #f44336;
+        color: white;
+    }
+    
+    .btn-favorited {
+        background: #f44336;
+        color: white;
+    }
+    
+    .comments-section {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        box-shadow: var(--box-shadow-sm);
+        margin-bottom: 2rem;
+    }
+    
+    .comments-header {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: var(--dark-text);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .comment-form {
+        background: var(--light-bg);
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 2rem;
+    }
+    
+    .comment {
+        display: flex;
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .comment:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    
+    .comment-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .comment-content {
+        flex-grow: 1;
+    }
+    
+    .comment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .comment-author {
+        font-weight: 600;
+        color: var(--dark-text);
+    }
+    
+    .comment-date {
+        font-size: 0.85rem;
+        color: var(--muted-text);
+    }
+    
+    .comment-text {
+        color: var(--dark-text);
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+    
+    .comment-actions {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .reply-btn {
+        background: transparent;
+        border: none;
+        color: var(--primary-color);
+        font-size: 0.9rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0;
+    }
+    
+    .replies {
+        margin-top: 1.5rem;
+        padding-left: 2rem;
+        border-left: 3px solid var(--light-bg);
+    }
+    
+    .reply-form {
+        background: var(--light-bg);
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        margin-top: 1rem;
+    }
+    
+    .sidebar-card {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow-sm);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    
+    .sidebar-header {
+        background: var(--primary-color);
+        color: white;
+        padding: 1rem 1.5rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    
+    .sidebar-body {
+        padding: 1.5rem;
+    }
+    
+    .author-profile {
+        text-align: center;
+    }
+    
+    .author-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin: 0 auto 1rem;
+        border: 4px solid var(--light-bg);
+    }
+    
+    .author-name {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--dark-text);
+    }
+    
+    .author-bio {
+        color: var(--muted-text);
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+    
+    .btn-follow {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 0.5rem 1.5rem;
+        font-weight: 500;
+        transition: var(--transition);
+    }
+    
+    .btn-follow:hover {
+        background: var(--secondary-color);
+        color: white;
+    }
+    
+    .sidebar-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .sidebar-item {
+        padding: 0.8rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .sidebar-item:last-child {
+        border-bottom: none;
+    }
+    
+    .sidebar-item a {
+        text-decoration: none;
+        color: var(--dark-text);
+        font-weight: 500;
+        transition: var(--transition);
+        display: block;
+    }
+    
+    .sidebar-item a:hover {
+        color: var(--primary-color);
+        padding-left: 5px;
+    }
+    
+    .post-meta {
+        font-size: 0.85rem;
+        color: var(--muted-text);
+        margin-top: 0.3rem;
+    }
+    
+    /* Rating stars */
+    .rating-stars {
+        display: flex;
+        gap: 0.3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .star {
+        color: #ddd;
+        cursor: pointer;
+        font-size: 1.5rem;
+        transition: var(--transition);
+    }
+    
+    .star:hover,
+    .star.active {
+        color: var(--accent-color);
+    }
+    
+    /* Responsive design */
+    @media (max-width: 992px) {
+        .blog-title {
+            font-size: 2.2rem;
+        }
+        
+        .blog-content {
+            padding: 2rem;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .blog-detail-container {
+            padding: 1rem;
+        }
+        
+        .blog-title {
+            font-size: 1.8rem;
+        }
+        
+        .blog-hero-img {
+            height: 300px;
+        }
+        
+        .blog-content {
+            padding: 1.5rem;
+            font-size: 1rem;
+        }
+        
+        .blog-meta {
+            gap: 1rem;
+        }
+        
+        .reaction-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .btn-reaction {
+            width: 100%;
+            max-width: 200px;
+        }
+        
+        .replies {
+            padding-left: 1rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .blog-title {
+            font-size: 1.6rem;
+        }
+        
+        .blog-hero-img {
+            height: 250px;
+        }
+        
+        .blog-hero-overlay {
+            padding: 1.5rem;
+        }
+        
+        .blog-meta {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.7rem;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .comment {
+            flex-direction: column;
+        }
+        
+        .comment-avatar {
+            margin-bottom: 1rem;
+            margin-right: 0;
+        }
+        
+        .replies {
+            padding-left: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="blog-detail-container">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Blog Hero Section -->
+            <div class="blog-hero">
+                {% if blog.featured_image %}
+                <img src="{{ blog.featured_image.url }}" class="blog-hero-img" alt="{{ blog.title }}">
+                {% else %}
+                <div class="blog-hero-img" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-journal-text" style="font-size: 4rem; color: white;"></i>
+                </div>
+                {% endif %}
+                <div class="blog-hero-overlay">
+                    <h1 class="blog-title">{{ blog.title }}</h1>
+                    <div class="blog-meta">
+                        <div class="blog-meta-item">
+                            <i class="bi bi-person-circle"></i>
+                            <span>By <a href="{% url 'blog:author_detail' blog.author.pk %}" style="color: white;">
+                                {% if blog.author.get_full_name %}
+                                    {{ blog.author.get_full_name }}
+                                {% else %}
+                                    {{ blog.author.username }}
+                                {% endif %}
+                            </a></span>
+                        </div>
+                        <div class="blog-meta-item">
+                            <i class="bi bi-calendar"></i>
+                            <span>{{ blog.created_at|date:"F d, Y" }}</span>
+                        </div>
+                        <div class="blog-meta-item">
+                            <i class="bi bi-clock"></i>
+                            <span>
+                                {% if blog.read_time %}
+                                    {{ blog.read_time }} min read
+                                {% else %}
+                                    5 min read
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="blog-meta-item">
+                            {% with avg_rating=blog.average_rating %}
+                            {% if avg_rating %}
+                            <i class="bi bi-star-fill" style="color: var(--accent-color);"></i>
+                            <span>{{ avg_rating|floatformat:1 }}/5</span>
+                            {% else %}
+                            <span>Not rated yet</span>
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+                        <div class="blog-meta-item">
+                            <i class="bi bi-eye"></i>
+                            <span>{{ blog.view_count|default:0 }} views</span>
+                        </div>
+                        <!-- Like/Dislike counts in the hero section -->
+                        <div class="blog-meta-item">
+                            <i class="bi bi-hand-thumbs-up-fill" style="color: var(--like-color);"></i>
+                            <span id="hero-like-count">{{ blog.like_set.count }}</span>
+                        </div>
+                        <div class="blog-meta-item">
+                            <i class="bi bi-hand-thumbs-down-fill" style="color: var(--dislike-color);"></i>
+                            <span id="hero-dislike-count">{{ blog.dislike_set.count }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Blog Content -->
+            <div class="blog-content">
+                {{ blog.content|linebreaks }}
+                
+                {% if blog.categories.all %}
+                <div class="category-badges">
+                    {% for category in blog.categories.all %}
+                    <span class="category-badge">{{ category.name }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <!-- Action buttons for authors -->
+                {% if user.is_authenticated and user == blog.author or user.is_staff %}
+                <div class="action-buttons">
+                    <a href="{% url 'blog:blog_update' blog.pk %}" class="btn-edit">
+                        <i class="bi bi-pencil"></i> Edit Post
+                    </a>
+                    <a href="{% url 'blog:blog_delete' blog.pk %}" class="btn-delete">
+                        <i class="bi bi-trash"></i> Delete Post
+                    </a>
+                    {% if blog.published %}
+                    <form action="{% url 'blog:unpublish_post' blog.pk %}" method="POST" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-delete">
+                            <i class="bi bi-eye-slash"></i> Unpublish
+                        </button>
+                    </form>
+                    {% else %}
+                    <form action="{% url 'blog:publish_post' blog.pk %}" method="POST" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-edit">
+                            <i class="bi bi-eye"></i> Publish
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Like/Dislike Section -->
+            <div class="like-dislike-section">
+                <h3 class="like-dislike-header">
+                    <i class="bi bi-hand-thumbs-up"></i> What do you think?
+                </h3>
+                <div class="reaction-buttons">
+                    <button id="like-button" class="btn-reaction btn-like {% if user_has_liked %}active{% endif %}" data-reaction="like">
+                        <i class="bi bi-hand-thumbs-up reaction-icon like-icon"></i>
+                        <span id="like-count" class="reaction-count">{{ blog.like_set.count }}</span>
+                        <span class="reaction-text">Like</span>
+                    </button>
+                    <button id="dislike-button" class="btn-reaction btn-dislike {% if user_has_disliked %}active{% endif %}" data-reaction="dislike">
+                        <i class="bi bi-hand-thumbs-down reaction-icon dislike-icon"></i>
+                        <span id="dislike-count" class="reaction-count">{{ blog.dislike_set.count }}</span>
+                        <span class="reaction-text">Dislike</span>
+                    </button>
+                </div>
+                {% if not user.is_authenticated %}
+                <p class="text-muted mt-3">Please <a href="{% url 'blog:login' %}">login</a> to like or dislike this post.</p>
+                {% endif %}
+            </div>
+            
+            <!-- Rating Section -->
+            <div class="rating-section">
+                <h3 class="rating-header">
+                    <i class="bi bi-star" style="color: var(--accent-color);"></i> Rate this blog
+                </h3>
+                {% if user.is_authenticated %}
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="rating_form" value="true">
+                    {{ rating_form|crispy }}
+                    <button type="submit" class="btn-edit mt-3">
+                        <i class="bi bi-check-circle"></i> Submit Rating
+                    </button>
+                </form>
+                {% else %}
+                <p class="text-muted">Please <a href="{% url 'blog:login' %}">login</a> to rate this blog.</p>
+                {% endif %}
+            </div>
+            
+            <!-- Favorite Button -->
+            {% if user.is_authenticated %}
+            <div class="favorite-section">
+                <form action="{% url 'blog:toggle_favorite' blog.pk %}" method="POST">
+                    {% csrf_token %}
+                    {% if is_favorited %}
+                    <button type="submit" class="btn-favorite btn-favorited">
+                        <i class="bi bi-heart-fill"></i> Remove from Favorites
+                    </button>
+                    {% else %}
+                    <button type="submit" class="btn-favorite">
+                        <i class="bi bi-heart"></i> Add to Favorites
+                    </button>
+                    {% endif %}
+                </form>
+                <p class="text-muted mt-2 small">{{ blog.favorited_by.count }} user{{ blog.favorited_by.count|pluralize }} added this to favorites</p>
+            </div>
+            {% endif %}
+
+            <!-- Comments Section -->
+            <div class="comments-section">
+                <h3 class="comments-header">
+                    <i class="bi bi-chat-dots"></i> Comments ({{ comments.paginator.count }})
+                </h3>
+                
+                <!-- Comment Form -->
+                {% if user.is_authenticated %}
+                <div class="comment-form">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="comment_form" value="true">
+                        {{ comment_form|crispy }}
+                        <button type="submit" class="btn-edit">
+                            <i class="bi bi-send"></i> Submit Comment
+                        </button>
+                    </form>
+                </div>
+                {% else %}
+                <p class="text-muted">Please <a href="{% url 'blog:login' %}">login</a> to leave a comment.</p>
+                {% endif %}
+
+                <!-- Display Comments -->
+                <div class="comments-list">
+                    {% for comment in comments %}
+                    <div class="comment">
+                        <div class="comment-avatar-container">
+                            {% if comment.user.profile.profile_picture %}
+                                <img src="{{ comment.user.profile.profile_picture.url }}" class="comment-avatar" alt="{{ comment.user.username }}">
+                            {% else %}
+                                <div class="comment-avatar" style="background: var(--primary-color); color: white; display: flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-person" style="font-size: 1.5rem;"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <span class="comment-author">
+                                    {% if comment.user.get_full_name %}
+                                        {{ comment.user.get_full_name }}
+                                    {% else %}
+                                        {{ comment.user.username }}
+                                    {% endif %}
+                                </span>
+                                <span class="comment-date">{{ comment.created_at|date:"M d, Y, h:i A" }}</span>
+                            </div>
+                            <p class="comment-text">{{ comment.content|linebreaksbr }}</p>
+                            
+                            <!-- Reply button and form -->
+                            {% if user.is_authenticated %}
+                            <div class="comment-actions">
+                                <button class="reply-btn" type="button" data-bs-toggle="collapse" data-bs-target="#reply-form-{{ comment.id }}">
+                                    <i class="bi bi-reply"></i> Reply
+                                </button>
+                            </div>
+                            <div class="collapse" id="reply-form-{{ comment.id }}">
+                                <div class="reply-form">
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="comment_form" value="true">
+                                        <input type="hidden" name="parent_comment_id" value="{{ comment.id }}">
+                                        {{ comment_form|crispy }}
+                                        <button type="submit" class="btn-edit btn-sm">
+                                            <i class="bi bi-send"></i> Submit Reply
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Replies -->
+                            {% if comment.replies.all %}
+                            <div class="replies">
+                                {% for reply in comment.replies.all %}
+                                <div class="comment">
+                                    <div class="comment-avatar-container">
+                                        {% if reply.user.profile.profile_picture %}
+                                            <img src="{{ reply.user.profile.profile_picture.url }}" class="comment-avatar" alt="{{ reply.user.username }}">
+                                        {% else %}
+                                            <div class="comment-avatar" style="background: var(--secondary-color); color: white; display: flex; align-items: center; justify-content: center;">
+                                                <i class="bi bi-person" style="font-size: 1.5rem;"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="comment-content">
+                                        <div class="comment-header">
+                                            <span class="comment-author">
+                                                {% if reply.user.get_full_name %}
+                                                    {{ reply.user.get_full_name }}
+                                                {% else %}
+                                                    {{ reply.user.username }}
+                                                {% endif %}
+                                            </span>
+                                            <span class="comment-date">{{ reply.created_at|date:"M d, Y, h:i A" }}</span>
+                                        </div>
+                                        <p class="comment-text">{{ reply.content|linebreaksbr }}</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-chat" style="font-size: 3rem; color: var(--muted-text);"></i>
+                        <p class="text-muted mt-3">No comments yet. Be the first to comment!</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Comment Pagination -->
+                {% if comments.has_other_pages %}
+                <nav aria-label="Comments pagination" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if comments.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ comments.previous_page_number }}{% if request.GET.comment_page %}&comment_page={{ request.GET.comment_page }}{% endif %}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">&laquo;</span>
+                        </li>
+                        {% endif %}
+
+                        {% for i in comments.paginator.page_range %}
+                        {% if comments.number == i %}
+                        <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ i }}{% if request.GET.comment_page %}&comment_page={{ request.GET.comment_page }}{% endif %}">{{ i }}</a>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+
+                        {% if comments.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ comments.next_page_number }}{% if request.GET.comment_page %}&comment_page={{ request.GET.comment_page }}{% endif %}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">&raquo;</span>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4 mt-4 mt-lg-0">
+            <!-- Author Info -->
+            <div class="sidebar-card">
+                <div class="sidebar-header">About the Author</div>
+                <div class="sidebar-body author-profile">
+                    {% if blog.author.profile.profile_picture %}
+                    <img src="{{ blog.author.profile.profile_picture.url }}" class="author-avatar" alt="{{ blog.author.username }}">
+                    {% else %}
+                    <div class="author-avatar" style="background: var(--primary-color); color: white; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-person" style="font-size: 2.5rem;"></i>
+                    </div>
+                    {% endif %}
+                    <h4 class="author-name">
+                        {% if blog.author.get_full_name %}
+                            {{ blog.author.get_full_name }}
+                        {% else %}
+                            {{ blog.author.username }}
+                        {% endif %}
+                    </h4>
+                    <p class="author-bio">{{ blog.author.profile.bio|default:"This author hasn't written a bio yet." }}</p>
+                    {% if blog.author.profile.social_media %}
+                    <a href="{{ blog.author.profile.social_media }}" target="_blank" class="btn-follow">
+                        <i class="bi bi-person-plus"></i> Follow
+                    </a>
+                    {% endif %}
+                    <div class="mt-3">
+                        <small class="text-muted">{{ blog.author.blog_posts.count }} post{{ blog.author.blog_posts.count|pluralize }}</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="sidebar-card">
+                <div class="sidebar-header">Categories</div>
+                <div class="sidebar-body">
+                    <ul class="sidebar-list">
+                        {% for category in categories %}
+                        <li class="sidebar-item">
+                            <a href="{% url 'blog:blog_list' %}?category={{ category.name }}">
+                                {{ category.name }} <span class="badge bg-primary float-end">{{ category.blog_count }}</span>
+                            </a>
+                        </li>
+                        {% empty %}
+                        <li class="sidebar-item">No categories found.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Recent Posts -->
+            <div class="sidebar-card">
+                <div class="sidebar-header">Recent Posts</div>
+                <div class="sidebar-body">
+                    <ul class="sidebar-list">
+                        {% for recent_blog in recent_blogs %}
+                        <li class="sidebar-item">
+                            <a href="{% url 'blog:blog_detail' recent_blog.pk %}">{{ recent_blog.title }}</a>
+                            <div class="post-meta">{{ recent_blog.created_at|date:"M d, Y" }}</div>
+                        </li>
+                        {% empty %}
+                        <li class="sidebar-item">No recent posts found.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Share Post -->
+            <div class="sidebar-card">
+                <div class="sidebar-header">Share This Post</div>
+                <div class="sidebar-body">
+                    <div class="d-flex justify-content-around">
+                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-facebook"></i>
+                        </a>
+                        <a href="https://twitter.com/intent/tweet?text=Check out this post: {{ blog.title }}&url={{ request.build_absolute_uri }}" target="_blank" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-twitter"></i>
+                        </a>
+                        <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.build_absolute_uri }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-linkedin"></i>
+                        </a>
+                        <button onclick="navigator.clipboard.writeText('{{ request.build_absolute_uri }}')" class="btn btn-outline-dark btn-sm">
+                            <i class="bi bi-link-45deg"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const likeButton = document.getElementById('like-button');
+        const dislikeButton = document.getElementById('dislike-button');
+        const likeCount = document.getElementById('like-count');
+        const dislikeCount = document.getElementById('dislike-count');
+        const heroLikeCount = document.getElementById('hero-like-count');
+        const heroDislikeCount = document.getElementById('hero-dislike-count');
+        
+        // Check if user is authenticated
+        const isAuthenticated = '{{ user.is_authenticated }}' === 'True';
+        
+        if (!isAuthenticated) {
+            // Disable buttons if user is not authenticated
+            likeButton.disabled = true;
+            dislikeButton.disabled = true;
+            return;
+        }
+        
+        // Add event listeners to buttons
+        likeButton.addEventListener('click', function() {
+            handleReaction('like');
+        });
+        
+        dislikeButton.addEventListener('click', function() {
+            handleReaction('dislike');
+        });
+        
+        function handleReaction(reactionType) {
+            // Get CSRF token
+            const csrftoken = getCookie('csrftoken');
+            
+            // Send AJAX request
+            fetch('{% url "blog:like_dislike_post" blog.pk %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({
+                    reaction: reactionType
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Update UI based on response
+                    updateReactionUI(data);
+                } else {
+                    console.error('Error:', data.message);
+                    alert('An error occurred: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        }
+        
+        function updateReactionUI(data) {
+            // Update counts
+            likeCount.textContent = data.likes_count;
+            dislikeCount.textContent = data.dislikes_count;
+            heroLikeCount.textContent = data.likes_count;
+            heroDislikeCount.textContent = data.dislikes_count;
+            
+            // Update button states
+            if (data.user_reaction === 'like') {
+                likeButton.classList.add('active');
+                dislikeButton.classList.remove('active');
+            } else if (data.user_reaction === 'dislike') {
+                likeButton.classList.remove('active');
+                dislikeButton.classList.add('active');
+            } else {
+                likeButton.classList.remove('active');
+                dislikeButton.classList.remove('active');
+            }
+        }
+        
+        // Function to get CSRF token from cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,749 @@
+{% extends "blog/base.html" %}
+{% load static %}
+
+{% block title %}Blog Posts{% endblock %}
+
+{% block extra_css %}
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+    /* Your existing CSS styles remain the same */
+    :root {
+        --primary-color: #1a237e;
+        --secondary-color: #3f51b5;
+        --accent-color: #ff9800;
+        --light-bg: #f0f2f5;
+        --card-bg: #ffffff;
+        --dark-text: #212121;
+        --light-text: #e8eaf6;
+        --muted-text: #6b7280;
+        --border-color: #e5e7eb;
+        --border-radius: 12px;
+        --box-shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.06);
+        --box-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
+        --transition: all 0.3s ease;
+        --like-color: #4caf50;
+        --dislike-color: #f44336;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--light-bg);
+        color: var(--dark-text);
+        line-height: 1.6;
+    }
+    
+    .blog-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--dark-text);
+        margin-bottom: 1rem;
+        position: relative;
+        padding-bottom: 0.5rem;
+    }
+    
+    .page-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 60px;
+        height: 4px;
+        background: var(--accent-color);
+        border-radius: 2px;
+    }
+    
+    .blog-card {
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow-sm);
+        background: var(--card-bg);
+        overflow: hidden;
+        transition: var(--transition);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        position: relative;
+    }
+    
+    .blog-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--box-shadow-lg);
+    }
+    
+    .blog-img-container {
+        position: relative;
+        overflow: hidden;
+        height: 240px;
+    }
+    
+    .blog-img-full {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    .blog-card:hover .blog-img-full {
+        transform: scale(1.05);
+    }
+    
+    .category-badge {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background: var(--accent-color);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        z-index: 1;
+    }
+    
+    .card-body {
+        padding: 1.8rem;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        line-height: 1.3;
+        margin-bottom: 0.8rem;
+    }
+    
+    .card-title a {
+        text-decoration: none;
+        color: var(--dark-text);
+        transition: color 0.2s ease;
+    }
+    
+    .card-title a:hover {
+        color: var(--primary-color);
+    }
+    
+    .blog-meta {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        color: var(--muted-text);
+        font-size: 0.9rem;
+    }
+    
+    .blog-meta span {
+        display: flex;
+        align-items: center;
+    }
+    
+    .blog-meta i {
+        color: var(--primary-color);
+        margin-right: 0.4rem;
+        font-size: 1rem;
+    }
+
+    .card-text {
+        color: var(--muted-text);
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        flex-grow: 1;
+    }
+    
+    .read-more-btn {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 0.75rem 1.8rem;
+        font-weight: 500;
+        transition: var(--transition);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        align-self: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .read-more-btn:hover {
+        background: var(--secondary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(26, 35, 126, 0.2);
+    }
+    
+    /* Engagement metrics styling */
+    .engagement-metrics {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .metric {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        color: var(--muted-text);
+        font-size: 0.9rem;
+    }
+    
+    .metric.likes i {
+        color: var(--like-color);
+    }
+    
+    .metric.dislikes i {
+        color: var(--dislike-color);
+    }
+    
+    .metric.favorites i {
+        color: #f44336;
+    }
+    
+    /* Sidebar styling */
+    .sidebar-card {
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow-sm);
+        background: var(--card-bg);
+        margin-bottom: 2rem;
+        overflow: hidden;
+        transition: var(--transition);
+    }
+    
+    .sidebar-card:hover {
+        box-shadow: var(--box-shadow-lg);
+    }
+    
+    .sidebar-header {
+        font-size: 1.2rem;
+        font-weight: 600;
+        padding: 1.2rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        background-color: rgba(26, 35, 126, 0.05);
+        color: var(--primary-color);
+    }
+    
+    .sidebar-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .sidebar-item {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #f8f8f8;
+        transition: var(--transition);
+    }
+    
+    .sidebar-item:last-child {
+        border-bottom: none;
+    }
+    
+    .sidebar-item a {
+        text-decoration: none;
+        color: var(--dark-text);
+        font-weight: 500;
+        display: block;
+        transition: var(--transition);
+    }
+    
+    .sidebar-item:hover {
+        background-color: rgba(26, 35, 126, 0.03);
+    }
+    
+    .sidebar-item a:hover {
+        color: var(--primary-color);
+        padding-left: 5px;
+    }
+
+    /* Search form styling */
+    .search-form .input-group {
+        display: flex;
+        width: 100%;
+    }
+    
+    .search-form .form-control {
+        border-radius: 50px 0 0 50px;
+        padding: 0.9rem 1.5rem;
+        border: 1px solid var(--border-color);
+        flex-grow: 1;
+        font-size: 1rem;
+    }
+    
+    .search-form .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.1);
+    }
+    
+    .search-btn {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 0 50px 50px 0;
+        padding: 0.6rem 1.2rem;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .search-btn:hover {
+        background: var(--secondary-color);
+    }
+    
+    /* Pagination styling */
+    .pagination {
+        margin-top: 3rem;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        list-style: none;
+        padding-left: 0;
+        gap: 0.5rem;
+    }
+    
+    .page-item {
+        margin: 0;
+    }
+    
+    .page-link {
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        color: var(--dark-text);
+        padding: 0.6rem 1.1rem;
+        text-decoration: none;
+        display: block;
+        transition: var(--transition);
+        font-weight: 500;
+    }
+    
+    .page-item.active .page-link {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: var(--light-text);
+    }
+    
+    .page-link:hover {
+        color: var(--primary-color);
+        background-color: rgba(26, 35, 126, 0.05);
+    }
+    
+    /* No results styling */
+    .no-results {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow-sm);
+        margin: 2rem 0;
+    }
+    
+    .no-results-icon {
+        font-size: 4rem;
+        color: var(--secondary-color);
+        margin-bottom: 1.5rem;
+    }
+    
+    .no-results h3 {
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--dark-text);
+    }
+    
+    .no-results p {
+        color: var(--muted-text);
+        font-size: 1.1rem;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    
+    /* Featured post highlight */
+    .featured-post {
+        border-left: 4px solid var(--accent-color);
+    }
+    
+    /* Filter chips */
+    .filter-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+        margin-bottom: 2rem;
+    }
+    
+    .filter-chip {
+        background: white;
+        padding: 0.5rem 1.2rem;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        box-shadow: var(--box-shadow-sm);
+        cursor: pointer;
+        transition: var(--transition);
+        border: 1px solid var(--border-color);
+        text-decoration: none;
+        color: var(--dark-text);
+    }
+    
+    .filter-chip.active {
+        background: var(--primary-color);
+        color: white;
+    }
+    
+    .filter-chip:hover {
+        box-shadow: var(--box-shadow-lg);
+        transform: translateY(-2px);
+    }
+    
+    /* Author info in sidebar */
+    .author-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .author-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .author-name {
+        font-weight: 600;
+        margin-bottom: 0.2rem;
+    }
+    
+    .author-role {
+        font-size: 0.85rem;
+        color: var(--muted-text);
+    }
+    
+    /* Responsive design for smaller screens */
+    @media (max-width: 992px) {
+        .blog-container {
+            padding: 1.5rem 1rem;
+        }
+
+        .page-title {
+            font-size: 2.2rem;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .blog-container {
+            padding: 1rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+        }
+        
+        .blog-img-container {
+            height: 200px;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+        }
+
+        .card-body {
+            padding: 1.2rem;
+        }
+
+        .read-more-btn {
+            padding: 0.6rem 1.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .blog-meta {
+            gap: 0.7rem;
+            font-size: 0.85rem;
+        }
+        
+        .engagement-metrics {
+            gap: 0.7rem;
+        }
+        
+        .sidebar-header {
+            padding: 1rem 1.2rem;
+            font-size: 1.1rem;
+        }
+        
+        .sidebar-item {
+            padding: 0.8rem 1.2rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .page-title {
+            font-size: 1.8rem;
+        }
+        
+        .blog-img-container {
+            height: 180px;
+        }
+        
+        .filter-chips {
+            gap: 0.5rem;
+        }
+        
+        .filter-chip {
+            padding: 0.4rem 1rem;
+            font-size: 0.85rem;
+        }
+        
+        .engagement-metrics {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="blog-container">
+    <div class="row">
+        <!-- Main blog posts section -->
+        <div class="col-lg-8">
+            <!-- Search results title -->
+            {% if query %}
+            <h1 class="page-title">Search Results for "{{ query }}"</h1>
+            <p class="text-muted mb-4">Found {{ blogs.paginator.count }} result{{ blogs.paginator.count|pluralize }}</p>
+            {% else %}
+            <h1 class="page-title">Latest Blog Posts</h1>
+            {% endif %}
+            
+            <!-- Filter chips -->
+            <div class="filter-chips">
+                <a href="{% url 'blog:blog_list' %}{% if query %}?q={{ query }}{% endif %}" class="filter-chip {% if not request.GET.sort %}active{% endif %}">All</a>
+                <a href="{% url 'blog:blog_list' %}?sort=rating{% if query %}&q={{ query }}{% endif %}" class="filter-chip {% if request.GET.sort == 'rating' %}active{% endif %}">Popular</a>
+                <a href="{% url 'blog:blog_list' %}{% if query %}?q={{ query }}{% endif %}" class="filter-chip {% if not request.GET.sort or request.GET.sort == 'recent' %}active{% endif %}">Recent</a>
+            </div>
+
+            {% if blogs %}
+                <div class="row">
+                    {% for blog in blogs %}
+                    <div class="col-12 mb-4">
+                        <div class="blog-card {% if forloop.first %}featured-post{% endif %}">
+                            <!-- Featured image -->
+                            {% if blog.featured_image %}
+                            <div class="blog-img-container">
+                                <a href="{% url 'blog:blog_detail' blog.pk %}">
+                                    <img src="{{ blog.featured_image.url }}" 
+                                            class="blog-img-full" 
+                                            alt="{{ blog.title }}">
+                                </a>
+                                {% if blog.categories.all %}
+                                <div class="category-badge">{{ blog.categories.first.name }}</div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            <div class="card-body">
+                                <h2 class="card-title">
+                                    <a href="{% url 'blog:blog_detail' blog.pk %}">{{ blog.title }}</a>
+                                </h2>
+                                <div class="blog-meta">
+                                    <span>
+                                        <i class="bi bi-person-circle"></i> 
+                                        <small>By <a href="{% url 'blog:author_detail' blog.author.pk %}" class="text-decoration-none">
+                                            {% if blog.author.get_full_name %}
+                                                {{ blog.author.get_full_name }}
+                                            {% else %}
+                                                {{ blog.author.username }}
+                                            {% endif %}
+                                        </a></small>
+                                    </span>
+                                    <span>
+                                        <i class="bi bi-calendar"></i> 
+                                        <small>{{ blog.created_at|date:"F d, Y" }}</small>
+                                    </span>
+                                    <span>
+                                        <i class="bi bi-clock"></i> 
+                                        <small>{% if blog.read_time %}{{ blog.read_time }} min read{% else %}5 min read{% endif %}</small>
+                                    </span>
+                                    {% with avg_rating=blog.average_rating %}
+                                    {% if avg_rating %}
+                                    <span>
+                                        <i class="bi bi-star-fill" style="color: var(--accent-color);"></i> 
+                                        <small>{{ avg_rating|floatformat:1 }}/5 ({{ blog.blog_ratings.count }})</small>
+                                    </span>
+                                    {% endif %}
+                                    {% endwith %}
+                                </div>
+                                <p class="card-text">{{ blog.content|striptags|truncatewords:30 }}</p>
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <a href="{% url 'blog:blog_detail' blog.pk %}" class="read-more-btn">
+                                        Read More <i class="bi bi-arrow-right"></i>
+                                    </a>
+                                    <div class="engagement-metrics">
+                                        <div class="metric likes">
+                                            <i class="bi bi-hand-thumbs-up"></i>
+                                            <span>{{ blog.like_set.count }}</span>
+                                        </div>
+                                        <div class="metric dislikes">
+                                            <i class="bi bi-hand-thumbs-down"></i>
+                                            <span>{{ blog.dislike_set.count }}</span>
+                                        </div>
+                                        <div class="metric favorites">
+                                            <i class="bi bi-heart"></i>
+                                            <span>{{ blog.favorited_by.count }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if blogs.has_other_pages %}
+                <nav aria-label="Page navigation">
+                    <ul class="pagination">
+                        {% if blogs.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ blogs.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.author %}&author={{ request.GET.author }}{% endif %}">
+                                    <i class="bi bi-chevron-left"></i> Previous
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-left"></i> Previous</span>
+                            </li>
+                        {% endif %}
+
+                        {% for i in blogs.paginator.page_range %}
+                            {% if blogs.number == i %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ i }}</span>
+                                </li>
+                            {% elif i > blogs.number|add:'-3' and i < blogs.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ i }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.author %}&author={{ request.GET.author }}{% endif %}">{{ i }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if blogs.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ blogs.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.author %}&author={{ request.GET.author }}{% endif %}">
+                                    Next <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Next <i class="bi bi-chevron-right"></i></span>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+            {% else %}
+                <div class="no-results">
+                    <div class="no-results-icon">
+                        <i class="bi bi-search"></i>
+                    </div>
+                    {% if query %}
+                    <h3>No results found</h3>
+                    <p class="text-muted">Sorry, we couldn't find any results for <strong>"{{ query }}"</strong>. Try different keywords or browse our categories.</p>
+                    {% else %}
+                    <h3>No blog posts available</h3>
+                    <p class="text-muted">Check back later for new content. Subscribe to our newsletter to get notified when new posts are published.</p>
+                    {% endif %}
+                    <a href="{% url 'blog:blog_list' %}" class="read-more-btn mt-3">
+                        <i class="bi bi-house"></i> Back to Home
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4 mt-4 mt-lg-0">
+            <!-- Search Bar -->
+            <div class="sidebar-card">
+                <div class="sidebar-header">Search Blogs</div>
+                <div class="p-4">
+                    <form action="{% url 'blog:blog_list' %}" method="GET" class="search-form">
+                        <div class="input-group">
+                            <input type="text" name="q" class="form-control" placeholder="Search posts..." value="{{ request.GET.q }}">
+                            <button class="btn search-btn" type="submit">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div> 
+
+            <!-- Recent Posts -->
+            <div class="sidebar-card">
+                <div class="sidebar-header">Recent Posts</div>
+                <div class="p-0">
+                    <ul class="sidebar-list">
+                        {% for blog in recent_blogs %}
+                        <li class="sidebar-item">
+                            <a href="{% url 'blog:blog_detail' blog.pk %}">{{ blog.title }}</a>
+                            <small class="text-muted d-block mt-1">{{ blog.created_at|date:"M d, Y" }}</small>
+                        </li>
+                        {% empty %}
+                        <li class="sidebar-item">No recent posts found.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="sidebar-card">
+                <div class="sidebar-header">Categories</div>
+                <div class="p-0">
+                    <ul class="sidebar-list">
+                        {% for category in categories %}
+                        <li class="sidebar-item">
+                            <a href="{% url 'blog:blog_list' %}?category={{ category.name }}">
+                                {{ category.name }} <span class="badge bg-primary float-end">{{ category.blog_count }}</span>
+                            </a>
+                        </li>
+                        {% empty %}
+                        <li class="sidebar-item">No categories found.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Authors -->
+            <div class="sidebar-card">
+                <div class="sidebar-header">Popular Authors</div>
+                <div class="p-0">
+                    <ul class="sidebar-list">
+                        {% for author in authors %}
+                        <li class="sidebar-item">
+                            <a href="{% url 'blog:author_detail' author.pk %}">
+                                {% if author.get_full_name %}
+                                    {{ author.get_full_name }}
+                                {% else %}
+                                    {{ author.username }}
+                                {% endif %}
+                                <span class="badge bg-primary float-end">{{ author.blog_count }}</span>
+                            </a>
+                        </li>
+                        {% empty %}
+                        <li class="sidebar-item">No authors found.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

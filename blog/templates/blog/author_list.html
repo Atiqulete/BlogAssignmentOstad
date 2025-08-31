@@ -1,0 +1,514 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block title %}Our Authors - BlogSite{% endblock %}
+
+{% block extra_css %}
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+    :root {
+        --primary-color: #1a237e;
+        --secondary-color: #3f51b5;
+        --accent-color: #ff9800;
+        --light-bg: #f0f2f5;
+        --card-bg: #ffffff;
+        --dark-text: #212121;
+        --light-text: #e8eaf6;
+        --muted-text: #6b7280;
+        --border-color: #e5e7eb;
+        --border-radius: 12px;
+        --box-shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.06);
+        --box-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
+        --transition: all 0.3s ease;
+    }
+    
+    .authors-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        position: relative;
+    }
+    
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--dark-text);
+        margin-bottom: 1rem;
+    }
+    
+    .page-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: var(--accent-color);
+        border-radius: 2px;
+    }
+    
+    .page-subtitle {
+        font-size: 1.1rem;
+        color: var(--muted-text);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .authors-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+    
+    .author-card {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow-sm);
+        overflow: hidden;
+        transition: var(--transition);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    
+    .author-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--box-shadow-lg);
+    }
+    
+    .author-header {
+        position: relative;
+        padding: 2rem 1.5rem 1rem;
+        text-align: center;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+    }
+    
+    .author-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid var(--card-bg);
+        margin: 0 auto 1rem;
+        box-shadow: var(--box-shadow-sm);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .avatar-placeholder {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: var(--secondary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2.5rem;
+        border: 4px solid var(--card-bg);
+        margin: 0 auto 1rem;
+        box-shadow: var(--box-shadow-sm);
+    }
+    
+    .author-name {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .author-role {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .author-body {
+        padding: 1.5rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .author-bio {
+        color: var(--muted-text);
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        flex-grow: 1;
+    }
+    
+    .author-stats {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 1.5rem;
+        padding: 0.8rem;
+        background: var(--light-bg);
+        border-radius: var(--border-radius);
+    }
+    
+    .stat {
+        text-align: center;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        line-height: 1;
+    }
+    
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--muted-text);
+        margin-top: 0.3rem;
+    }
+    
+    .author-footer {
+        padding: 0 1.5rem 1.5rem;
+    }
+    
+    .btn-view-profile {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 0.7rem 1.5rem;
+        font-weight: 500;
+        transition: var(--transition);
+        display: block;
+        width: 100%;
+        text-align: center;
+        text-decoration: none;
+    }
+    
+    .btn-view-profile:hover {
+        background: var(--secondary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(26, 35, 126, 0.2);
+        color: white;
+    }
+    
+    .no-authors {
+        text-align: center;
+        padding: 3rem;
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow-sm);
+        grid-column: 1 / -1;
+    }
+    
+    .no-authors-icon {
+        font-size: 3rem;
+        color: var(--muted-text);
+        margin-bottom: 1rem;
+    }
+    
+    /* Filter and search section */
+    .authors-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .search-form {
+        display: flex;
+        max-width: 400px;
+        width: 100%;
+    }
+    
+    .search-input {
+        flex-grow: 1;
+        border-radius: 50px 0 0 50px;
+        padding: 0.8rem 1.5rem;
+        border: 1px solid var(--border-color);
+        transition: var(--transition);
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.1);
+    }
+    
+    .search-btn {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 0 50px 50px 0;
+        padding: 0.8rem 1.2rem;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .search-btn:hover {
+        background: var(--secondary-color);
+    }
+    
+    .filter-dropdown {
+        position: relative;
+    }
+    
+    .filter-btn {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 50px;
+        padding: 0.8rem 1.5rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: var(--transition);
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .filter-btn:hover {
+        border-color: var(--primary-color);
+    }
+    
+    /* Pagination styling */
+    .pagination {
+        margin-top: 3rem;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        list-style: none;
+        padding-left: 0;
+        gap: 0.5rem;
+    }
+    
+    .page-item {
+        margin: 0;
+    }
+    
+    .page-link {
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        color: var(--dark-text);
+        padding: 0.6rem 1.1rem;
+        text-decoration: none;
+        display: block;
+        transition: var(--transition);
+        font-weight: 500;
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .page-item.active .page-link {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: var(--light-text);
+    }
+    
+    .page-link:hover {
+        color: var(--primary-color);
+        background-color: rgba(26, 35, 126, 0.05);
+    }
+    
+    /* Responsive design */
+    @media (max-width: 992px) {
+        .authors-grid {
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .authors-container {
+            padding: 0 0.5rem;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+        }
+        
+        .authors-controls {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .search-form {
+            max-width: 100%;
+        }
+        
+        .filter-dropdown {
+            width: 100%;
+        }
+        
+        .filter-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .authors-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .page-title {
+            font-size: 1.8rem;
+        }
+        
+        .author-header {
+            padding: 1.5rem 1rem 0.5rem;
+        }
+        
+        .author-avatar, .avatar-placeholder {
+            width: 100px;
+            height: 100px;
+        }
+        
+        .author-name {
+            font-size: 1.2rem;
+        }
+        
+        .author-stats {
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+        
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="authors-container">
+    <div class="page-header">
+        <h1 class="page-title">Our Authors</h1>
+        <p class="page-subtitle">Meet the talented writers who create amazing content for our blog community.</p>
+    </div>
+    
+    <!-- Search and Filter Controls -->
+    <div class="authors-controls">
+        <form method="GET" action="{% url 'blog:author_list' %}" class="search-form">
+            <input type="text" name="q" class="search-input" placeholder="Search authors..." value="{{ request.GET.q }}">
+            <button type="submit" class="search-btn">
+                <i class="bi bi-search"></i>
+            </button>
+        </form>
+        
+        <div class="filter-dropdown">
+            <button class="filter-btn">
+                <i class="bi bi-filter"></i> Filter
+            </button>
+            <!-- Filter dropdown content would go here -->
+        </div>
+    </div>
+    
+    <div class="authors-grid">
+        {% for author in authors %}
+        <div class="author-card">
+            <div class="author-header">
+                {% if author.profile.profile_picture %}
+                <img src="{{ author.profile.profile_picture.url }}" class="author-avatar" alt="{{ author.username }}">
+                {% else %}
+                <div class="avatar-placeholder">
+                    <i class="bi bi-person"></i>
+                </div>
+                {% endif %}
+                <h3 class="author-name">{{ author.get_full_name|default:author.username }}</h3>
+                <div class="author-role">{{ author.profile.user_type|title }}</div>
+            </div>
+            
+            <div class="author-body">
+                <p class="author-bio">
+                    {{ author.profile.bio|default:"This author hasn't written a bio yet. Check out their posts to learn more about their writing style and interests."|truncatewords:25 }}
+                </p>
+                
+                <div class="author-stats">
+                    <div class="stat">
+                        <span class="stat-number">{{ author.blog_count|default:0 }}</span>
+                        <span class="stat-label">Posts</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">{{ author.avg_rating|default:0|floatformat:1 }}</span>
+                        <span class="stat-label">Avg Rating</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">{{ author.total_likes|default:0 }}</span>
+                        <span class="stat-label">Likes</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="author-footer">
+                <a href="{% url 'blog:author_detail' author.pk %}" class="btn-view-profile">
+                    View Profile <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="no-authors">
+            <div class="no-authors-icon">
+                <i class="bi bi-people"></i>
+            </div>
+            <h3>No authors found</h3>
+            <p class="text-muted">{% if request.GET.q %}No authors match your search "{{ request.GET.q }}".{% else %}There are no authors to display at this time.{% endif %}</p>
+            <a href="{% url 'blog:blog_list' %}" class="btn-view-profile mt-3">
+                <i class="bi bi-journals"></i> Browse Blogs
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if authors.has_other_pages %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            {% if authors.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ authors.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                        <i class="bi bi-chevron-left"></i> Previous
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="bi bi-chevron-left"></i> Previous</span>
+                </li>
+            {% endif %}
+
+            {% for i in authors.paginator.page_range %}
+                {% if authors.number == i %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ i }}</span>
+                    </li>
+                {% elif i > authors.number|add:'-3' and i < authors.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ i }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ i }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if authors.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ authors.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                        Next <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Next <i class="bi bi-chevron-right"></i></span>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock content %}

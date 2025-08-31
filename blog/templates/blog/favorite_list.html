@@ -1,0 +1,448 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block title %}My Favorites{% endblock %}
+
+{% block extra_css %}
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+    :root {
+        --primary-color: #1a237e;
+        --secondary-color: #3f51b5;
+        --accent-color: #ff9800;
+        --light-bg: #f0f2f5;
+        --card-bg: #ffffff;
+        --dark-text: #212121;
+        --light-text: #e8eaf6;
+        --muted-text: #6b7280;
+        --border-color: #e5e7eb;
+        --border-radius: 12px;
+        --box-shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.06);
+        --box-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
+        --transition: all 0.3s ease;
+        --like-color: #4caf50;
+        --dislike-color: #f44336;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--light-bg);
+        color: var(--dark-text);
+        line-height: 1.6;
+    }
+    
+    .blog-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--dark-text);
+        margin-bottom: 1rem;
+        position: relative;
+        padding-bottom: 0.5rem;
+    }
+    
+    .page-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 60px;
+        height: 4px;
+        background: var(--accent-color);
+        border-radius: 2px;
+    }
+    
+    .blog-card {
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow-sm);
+        background: var(--card-bg);
+        overflow: hidden;
+        transition: var(--transition);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        position: relative;
+    }
+    
+    .blog-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--box-shadow-lg);
+    }
+    
+    .blog-img-container {
+        position: relative;
+        overflow: hidden;
+        height: 240px;
+    }
+    
+    .blog-img-full {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    .blog-card:hover .blog-img-full {
+        transform: scale(1.05);
+    }
+    
+    .category-badge {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background: var(--accent-color);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        z-index: 1;
+    }
+    
+    .card-body {
+        padding: 1.8rem;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        line-height: 1.3;
+        margin-bottom: 0.8rem;
+    }
+    
+    .card-title a {
+        text-decoration: none;
+        color: var(--dark-text);
+        transition: color 0.2s ease;
+    }
+    
+    .card-title a:hover {
+        color: var(--primary-color);
+    }
+    
+    .blog-meta {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        color: var(--muted-text);
+        font-size: 0.9rem;
+    }
+    
+    .blog-meta span {
+        display: flex;
+        align-items: center;
+    }
+    
+    .blog-meta i {
+        color: var(--primary-color);
+        margin-right: 0.4rem;
+        font-size: 1rem;
+    }
+
+    .card-text {
+        color: var(--muted-text);
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        flex-grow: 1;
+    }
+    
+    .read-more-btn {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 0.75rem 1.8rem;
+        font-weight: 500;
+        transition: var(--transition);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        align-self: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .read-more-btn:hover {
+        background: var(--secondary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(26, 35, 126, 0.2);
+    }
+    
+    .remove-favorite-btn {
+        background: transparent;
+        border: 2px solid #f44336;
+        color: #f44336;
+        border-radius: 50px;
+        padding: 0.75rem 1.8rem;
+        font-weight: 500;
+        transition: var(--transition);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-left: 1rem;
+    }
+    
+    .remove-favorite-btn:hover {
+        background: #f44336;
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    /* Engagement metrics styling */
+    .engagement-metrics {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .metric {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        color: var(--muted-text);
+        font-size: 0.9rem;
+    }
+    
+    .metric.likes i {
+        color: var(--like-color);
+    }
+    
+    .metric.dislikes i {
+        color: var(--dislike-color);
+    }
+    
+    .metric.favorites i {
+        color: #f44336;
+    }
+    
+    .favorite-date {
+        color: var(--muted-text);
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    /* No results styling */
+    .no-results {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow-sm);
+        margin: 2rem 0;
+    }
+    
+    .no-results-icon {
+        font-size: 4rem;
+        color: var(--secondary-color);
+        margin-bottom: 1.5rem;
+    }
+    
+    .no-results h3 {
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--dark-text);
+    }
+    
+    .no-results p {
+        color: var(--muted-text);
+        font-size: 1.1rem;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    
+    /* Responsive design for smaller screens */
+    @media (max-width: 992px) {
+        .blog-container {
+            padding: 1.5rem 1rem;
+        }
+
+        .page-title {
+            font-size: 2.2rem;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .blog-container {
+            padding: 1rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+        }
+        
+        .blog-img-container {
+            height: 200px;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+        }
+
+        .card-body {
+            padding: 1.2rem;
+        }
+
+        .read-more-btn, .remove-favorite-btn {
+            padding: 0.6rem 1.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .blog-meta {
+            gap: 0.7rem;
+            font-size: 0.85rem;
+        }
+        
+        .engagement-metrics {
+            gap: 0.7rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .page-title {
+            font-size: 1.8rem;
+        }
+        
+        .blog-img-container {
+            height: 180px;
+        }
+        
+        .engagement-metrics {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+        
+        .remove-favorite-btn {
+            margin-left: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="blog-container">
+    <h1 class="page-title">My Favorite Blogs</h1>
+    
+    {% if favorites %}
+        <div class="row">
+            {% for favorite in favorites %}
+            <div class="col-12 mb-4">
+                <div class="blog-card">
+                    <!-- Featured image -->
+                    {% if favorite.blog.featured_image %}
+                    <div class="blog-img-container">
+                        <a href="{% url 'blog:blog_detail' favorite.blog.pk %}">
+                            <img src="{{ favorite.blog.featured_image.url }}" 
+                                    class="blog-img-full" 
+                                    alt="{{ favorite.blog.title }}">
+                        </a>
+                        {% if favorite.blog.categories.all %}
+                        <div class="category-badge">{{ favorite.blog.categories.first.name }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h2 class="card-title">
+                            <a href="{% url 'blog:blog_detail' favorite.blog.pk %}">{{ favorite.blog.title }}</a>
+                        </h2>
+                        <div class="blog-meta">
+                            <span>
+                                <i class="bi bi-person-circle"></i> 
+                                <small>By <a href="{% url 'blog:author_detail' favorite.blog.author.pk %}" class="text-decoration-none">
+                                    {% if favorite.blog.author.get_full_name %}
+                                        {{ favorite.blog.author.get_full_name }}
+                                    {% else %}
+                                        {{ favorite.blog.author.username }}
+                                    {% endif %}
+                                </a></small>
+                            </span>
+                            <span>
+                                <i class="bi bi-calendar"></i> 
+                                <small>{{ favorite.blog.created_at|date:"F d, Y" }}</small>
+                            </span>
+                            <span>
+                                <i class="bi bi-clock"></i> 
+                                <small>{% if favorite.blog.read_time %}{{ favorite.blog.read_time }} min read{% else %}5 min read{% endif %}</small>
+                            </span>
+                            {% with avg_rating=favorite.blog.average_rating %}
+                            {% if avg_rating %}
+                            <span>
+                                <i class="bi bi-star-fill" style="color: var(--accent-color);"></i> 
+                                <small>{{ avg_rating|floatformat:1 }}/5 ({{ favorite.blog.blog_ratings.count }})</small>
+                            </span>
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+                        <p class="card-text">{{ favorite.blog.content|striptags|truncatewords:30 }}</p>
+                        
+                        <div class="engagement-metrics">
+                            <div class="metric likes">
+                                <i class="bi bi-hand-thumbs-up"></i>
+                                <span>{{ favorite.blog.like_set.count }}</span>
+                            </div>
+                            <div class="metric dislikes">
+                                <i class="bi bi-hand-thumbs-down"></i>
+                                <span>{{ favorite.blog.dislike_set.count }}</span>
+                            </div>
+                            <div class="metric favorites">
+                                <i class="bi bi-heart-fill" style="color: #f44336;"></i>
+                                <span>{{ favorite.blog.favorited_by.count }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="favorite-date">
+                            <i class="bi bi-clock-history"></i>
+                            <span>Added to favorites: {{ favorite.created_at|timesince }} ago</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-3 action-buttons">
+                            <a href="{% url 'blog:blog_detail' favorite.blog.pk %}" class="read-more-btn">
+                                Read More <i class="bi bi-arrow-right"></i>
+                            </a>
+                            <form action="{% url 'blog:toggle_favorite' favorite.blog.pk %}" method="POST">
+                                {% csrf_token %}
+                                <button type="submit" class="remove-favorite-btn">
+                                    <i class="bi bi-heart-fill"></i> Remove
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-results">
+            <div class="no-results-icon">
+                <i class="bi bi-heart"></i>
+            </div>
+            <h3>No favorites yet</h3>
+            <p class="text-muted">You haven't added any blogs to your favorites yet. Start exploring and add posts you love!</p>
+            <a href="{% url 'blog:blog_list' %}" class="read-more-btn mt-3">
+                <i class="bi bi-journals"></i> Browse Blogs
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock content %}

@@ -1,0 +1,428 @@
+<!-- blog/blog_form.html -->
+{% extends 'blog/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #1a237e;
+        --secondary-color: #3f51b5;
+        --accent-color: #ff9800;
+        --light-bg: #f0f2f5;
+        --card-bg: #ffffff;
+        --dark-text: #212121;
+        --light-text: #e8eaf6;
+        --muted-text: #6b7280;
+        --border-color: #e5e7eb;
+        --border-radius: 12px;
+        --box-shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.06);
+        --box-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
+        --transition: all 0.3s ease;
+    }
+    
+    .blog-form-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .form-card {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow-lg);
+        overflow: hidden;
+    }
+    
+    .form-header {
+        background: var(--primary-color);
+        color: white;
+        padding: 1.5rem 2rem;
+        position: relative;
+    }
+    
+    .form-header h3 {
+        margin: 0;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+    
+    .form-header-icon {
+        font-size: 1.5rem;
+    }
+    
+    .form-body {
+        padding: 2rem;
+    }
+    
+    .form-section {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .form-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 1.2rem;
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .btn-primary {
+        background: var(--primary-color);
+        border: none;
+        border-radius: 50px;
+        padding: 0.8rem 2rem;
+        font-weight: 500;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-primary:hover {
+        background: var(--secondary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(26, 35, 126, 0.2);
+    }
+    
+    .btn-secondary {
+        background: var(--muted-text);
+        border: none;
+        border-radius: 50px;
+        padding: 0.8rem 2rem;
+        font-weight: 500;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #4b5563;
+        transform: translateY(-2px);
+        color: white;
+    }
+    
+    .image-preview {
+        margin-top: 1.5rem;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--box-shadow-sm);
+        max-width: 100%;
+    }
+    
+    .image-preview img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+    
+    .image-actions {
+        background: var(--light-bg);
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .custom-file-upload {
+        display: inline-block;
+        padding: 0.8rem 1.5rem;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: var(--transition);
+        font-weight: 500;
+        text-align: center;
+    }
+    
+    .custom-file-upload:hover {
+        background: var(--secondary-color);
+    }
+    
+    .custom-file-upload i {
+        margin-right: 0.5rem;
+    }
+    
+    input[type="file"] {
+        display: none;
+    }
+    
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    
+    .form-check-input {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .form-check-label {
+        font-weight: 500;
+    }
+    
+    .character-count {
+        font-size: 0.85rem;
+        color: var(--muted-text);
+        text-align: right;
+        margin-top: 0.5rem;
+    }
+    
+    /* Custom styling for crispy forms */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: var(--dark-text);
+    }
+    
+    .form-control, .form-select {
+        border-radius: 8px;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-color);
+        transition: var(--transition);
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.1);
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .blog-form-container {
+            padding: 0 0.5rem;
+            margin: 1rem auto;
+        }
+        
+        .form-body {
+            padding: 1.5rem;
+        }
+        
+        .form-header {
+            padding: 1.2rem 1.5rem;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .btn-primary, .btn-secondary {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="blog-form-container">
+    <div class="form-card">
+        <div class="form-header">
+            <h3>
+                <i class="bi 
+                {% if title == 'Create Blog' %} 
+                    bi-journal-plus 
+                {% else %} 
+                    bi-journal-text 
+                {% endif %} 
+                form-header-icon"></i>
+                {{ title }}
+            </h3>
+        </div>
+        
+        <div class="form-body">
+            <form method="POST" enctype="multipart/form-data" id="blogForm">
+                {% csrf_token %}
+                
+                <!-- Basic Information Section -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="bi bi-info-circle"></i> Basic Information
+                    </h4>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            {{ form.title|as_crispy_field }}
+                            <div class="character-count" id="title-character-count">
+                                <span id="title-current">0</span>/<span id="title-max">200</span> characters
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            {{ form.categories|as_crispy_field }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Content Section -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="bi bi-file-text"></i> Content
+                    </h4>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            {{ form.content|as_crispy_field }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Featured Image Section -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="bi bi-image"></i> Featured Image
+                    </h4>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="{{ form.featured_image.id_for_label }}" class="custom-file-upload">
+                                    <i class="bi bi-upload"></i> Choose Image
+                                </label>
+                                <input type="file" name="{{ form.featured_image.name }}" id="{{ form.featured_image.id_for_label }}" accept="image/*" onchange="previewImage(this)">
+                                <span class="text-muted ms-2" id="file-name">No file chosen</span>
+                            </div>
+                            
+                            <!-- Current image preview (for updates) -->
+                            {% if form.instance.featured_image %}
+                            <div class="image-preview">
+                                <img src="{{ form.instance.featured_image.url }}" id="image-preview" alt="Current featured image">
+                                <div class="image-actions">
+                                    <div class="form-check">
+                                        <input type="checkbox" name="{{ form.featured_image.clear.html_name }}" id="{{ form.featured_image.clear.id_for_label }}" class="form-check-input">
+                                        <label class="form-check-label" for="{{ form.featured_image.clear.id_for_label }}">
+                                            Remove current image
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="image-preview" id="image-preview-container" style="display: none;">
+                                <img id="image-preview" src="#" alt="Image preview">
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="bi 
+                        {% if title == 'Create Blog' %} 
+                            bi-journal-check 
+                        {% else %} 
+                            bi-arrow-repeat 
+                        {% endif %}"></i>
+                        {% if title == 'Create Blog' %}Publish Blog{% else %}Update Blog{% endif %}
+                    </button>
+                    <a href="{% url 'blog:blog_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Character counter for title
+    document.addEventListener('DOMContentLoaded', function() {
+        const titleInput = document.getElementById('id_title');
+        const titleCurrent = document.getElementById('title-current');
+        const titleMax = document.getElementById('title-max');
+        
+        if (titleInput) {
+            // Set initial value
+            titleCurrent.textContent = titleInput.value.length;
+            
+            // Update on input
+            titleInput.addEventListener('input', function() {
+                titleCurrent.textContent = this.value.length;
+                
+                // Add warning if approaching limit
+                if (this.value.length > 180) {
+                    titleCurrent.style.color = '#e53e3e';
+                } else {
+                    titleCurrent.style.color = '';
+                }
+            });
+        }
+    });
+    
+    // Image preview functionality
+    function previewImage(input) {
+        const fileNameSpan = document.getElementById('file-name');
+        const previewContainer = document.getElementById('image-preview-container');
+        const preview = document.getElementById('image-preview');
+        
+        if (input.files && input.files[0]) {
+            const fileName = input.files[0].name;
+            fileNameSpan.textContent = fileName;
+            
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                if (previewContainer) previewContainer.style.display = 'block';
+            };
+            
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            fileNameSpan.textContent = 'No file chosen';
+            if (previewContainer) previewContainer.style.display = 'none';
+        }
+    }
+    
+    // Auto-resize textarea
+    function autoResizeTextarea(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = (textarea.scrollHeight) + 'px';
+    }
+    
+    // Initialize auto-resize for any textareas
+    document.addEventListener('DOMContentLoaded', function() {
+        const textareas = document.querySelectorAll('textarea');
+        textareas.forEach(textarea => {
+            autoResizeTextarea(textarea);
+            textarea.addEventListener('input', function() {
+                autoResizeTextarea(this);
+            });
+        });
+    });
+</script>
+{% endblock content %}
